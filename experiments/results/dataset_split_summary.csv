@@ -1,0 +1,4 @@
+split,samples,share_of_labeled_pool
+train,3128,0.4256361409715608
+validation,552,0.0751122601714519
+test,3669,0.49925159885698733
