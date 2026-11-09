@@ -1,0 +1,13 @@
+weighting,method,mean_tcers,samples
+equal,Grad-CAM,0.879850995292549,8
+equal,Integrated Gradients,0.6719314016599476,8
+equal,Occlusion,0.7716995262176207,8
+ssim_heavy,Grad-CAM,0.8600952298454844,8
+ssim_heavy,Integrated Gradients,0.6919303019759535,8
+ssim_heavy,Occlusion,0.7549177894470722,8
+spearman_heavy,Grad-CAM,0.8778493648659744,8
+spearman_heavy,Integrated Gradients,0.6481833696863427,8
+spearman_heavy,Occlusion,0.7535763314110316,8
+cosine_heavy,Grad-CAM,0.901608391166188,8
+cosine_heavy,Integrated Gradients,0.6756805333175466,8
+cosine_heavy,Occlusion,0.806604457794758,8
