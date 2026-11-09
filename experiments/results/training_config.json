@@ -1,0 +1,14 @@
+{
+  "seed": 42,
+  "epochs": 10,
+  "image_size": 224,
+  "batch_size": 32,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "patience": 3,
+  "num_classes": 2,
+  "epochs_completed": 6,
+  "best_epoch": 3,
+  "best_validation_loss": 0.0414407199334717,
+  "best_validation_accuracy": 0.9836956521739132
+}
