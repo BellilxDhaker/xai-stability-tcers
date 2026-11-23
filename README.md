@@ -1,82 +1,51 @@
-# Beyond Accuracy: XAI Reliability Under Input Perturbations
+# Explanation reliability on Oxford-IIIT Pet
 
-This repository implements a reproducible Master's-level study of explanation
-stability for an ImageNet-pretrained ResNet18 on the Oxford-IIIT Pet Dataset
-(binary cat-vs-dog classification).
-It compares Grad-CAM, Integrated Gradients, and Occlusion Sensitivity under
-small rotations, brightness changes, Gaussian noise, and resize perturbations.
+Project 4 for the Master 2 RNA et Deep Learning GenAI mini-project. This study compares Grad-CAM, Integrated Gradients and sliding-window Occlusion for an ImageNet-pretrained ResNet18 that distinguishes cats from dogs. A convolutional VAE supplies local, class-preserving alternatives to classic input edits.
 
-**TCERS is a proposed evaluation score, not an established scientific metric.**
-It averages SSIM, Spearman correlation, and cosine similarity only over
-transformations for which the model prediction remains unchanged. Prediction
-consistency and explanation stability are exported separately.
+1. Does explanation stability rank the methods differently under matched classic and VAE perturbations?
+2. Does per-image stability correlate with deletion and insertion faithfulness?
+3. Does the ordering by sensitivity to randomized parameters agree with the stability ordering?
 
-## Colab / local setup
+Read the [problem statement](docs/problem_statement.md), [state of the art](docs/state_of_the_art.md), [published comparison protocol](docs/sanity_protocol.md), [dataset instructions](data/README.md), and [paper downloads](papers/README.md).
+
+## Run on CPU or Colab
+
+Use Python 3.11–3.13. On a Colab T4, select a GPU runtime and substitute the `https://download.pytorch.org/whl/cu126` wheel index in the first command.
 
 ```bash
-pip install -r requirements.txt
-python -m src.train --epochs 10
+python -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements.txt
+python -m pytest -q
+python -m src.train
+python -m src.train_vae
+python -m src.run_sanity_checks
+python -m src.run_stability
+python -m src.run_faithfulness
+python -m src.run_stats
 ```
 
-The dataset is downloaded automatically by `torchvision`. CUDA is detected
-automatically; CPU execution is supported. In Colab, optionally mount Drive
-and set `ExperimentConfig.data_root`, `output_root`, and `checkpoint_root` to
-Drive paths before running.
+Append `--quick` to **each** of the six commands for a small end-to-end smoke run. The dataset downloads on first use in both modes. Quick mode uses a small training subset, smaller tensors, one seed, reduced attribution steps and a classifier trained from scratch. It writes to `experiments/project4-quick/` and `checkpoints/quick/`. Its outputs are suitable for checking the workflow.
 
-## Execution order
+Full results go to `experiments/project4/` and checkpoints to `checkpoints/`. The target for the full pipeline is about two hours on a Colab T4. CPU runtime depends on the hardware and cached maps. Each stage writes its effective configuration. The [notebooks](notebooks/) call the same stages and display their outputs.
 
-1. `notebooks/01_data_exploration.ipynb`
-2. `notebooks/02_model_training.ipynb`
-3. `notebooks/03_explainability_methods.ipynb`
-4. `notebooks/04_explanation_stability.ipynb`
-5. `notebooks/05_proposed_method.ipynb`
-6. `notebooks/06_statistical_analysis.ipynb`
+Use the same `--config overrides.json` with each stage to override any field in [ExperimentConfig](src/config.py). Common CLI overrides include `--test-samples`, `--data-root`, `--output-root`, `--checkpoint-root` and `--resnet-checkpoint`. For an existing compatible classifier checkpoint, pass `--resnet-checkpoint` to evaluate it and reuse it throughout. On a low-memory device reduce `forward_batch_size` and `evaluation_batch_size`. Keep the same batch configuration across comparison arms and reruns. The on-disk map cache is keyed by input pixels, model, targets and attribution settings. Set `cache_maps` to false when disk space is limited.
 
-The notebooks document the full experimental protocol, data diagnostics,
-visualization, statistical analysis, and reporting guidance; reusable code lives
-under `src/`. The figures and tables below were produced by the documented CPU
-run (see `experiments/results/` and `figures/`); rerunning the notebooks
-regenerates every artifact from scratch.
+## Experimental protocol
 
-## Results preview
+- The classifier and VAEs use the official training data, with a fixed subset held out for validation. All experiments share a stratified cohort of at least 300 test images. The same classifier explains its original predicted target throughout each intervention.
+- Apply edits to RGB pixels in `[0,1]`. Normalize inside the classifier. Forward-warp the reference map for geometry and score rotation only on valid overlap, with SSIM windows fully supported.
+- TCERS averages SSIM, Spearman and cosine over prediction-preserving pairs. The first two use `(score + 1) / 2`; cosine is computed on nonnegative normalized maps. Identical constant maps score one under the explicit degenerate-map convention. Constant maps are ranked with seeded tie-breaking for deletion and insertion.
+- Fit one VAE per evaluation seed. Compare reconstructions at the posterior mean with decoded Gaussian neighbours. Match predictively stable classic edits on the same reconstructions to predictively stable latent edits by pixel RMSE, within a fixed caliper and without replacement. Raw-image classic results give context across the complete cohort.
+- Summaries report image-level sample counts, means, standard deviations and percentile bootstrap 95% CIs. Paired Wilcoxon tests use Holm correction and include rank-biserial effect sizes. Within-image aggregation accounts for repeated variants and evaluation seeds. See [protocol details](docs/problem_statement.md).
 
-**Explanation maps.** Grad-CAM, Integrated Gradients, and Occlusion Sensitivity
-computed for the same samples with the trained ResNet18. Grad-CAM produces the
-most spatially coherent maps, while Integrated Gradients is visibly more
-diffuse and Occlusion is blockier.
+## Results
 
-![Explanation methods on identical samples](figures/explanation_methods_grid.png)
+<!-- project4-results:start -->
+Full experiment results are pending.
+<!-- project4-results:end -->
 
-**Stability of explanations (TCERS).** Per-sample TCERS across 14
-transformations (rotations, brightness, Gaussian noise, resizes), computed on
-prediction-preserving pairs only. Mean TCERS: Grad-CAM 0.880 > Occlusion 0.772 >
-Integrated Gradients 0.672, with all pairwise differences significant after Holm
-correction (p = 0.023).
+The current-protocol figures and [generated summary](experiments/project4/results.md) are produced from the new CSVs by `python -m src.run_stats`. The five-slide [Marp deck](slides/project4.md) is refreshed by the same command. The project’s [checklist](CHECKLIST.md) records which experiments have actually run. The tracked tables in `experiments/results/` and images in `figures/` preserve the original exploratory results from before the protocol correction.
 
-![Per-sample TCERS distributions by method](figures/tcers_distribution.png)
+## Limitations
 
-**Classification context.** The checkpoint used for all explanations reaches
-98.07% test accuracy and 0.998 ROC-AUC, so stability results are not confounded
-by a weak base model.
-
-![Test-set confusion matrix](figures/test_confusion_matrix.png)
-
-## Scientific safeguards
-
-- Official `trainval` and `test` splits are used; validation is derived only
-  from `trainval`.
-- Fixed seeds, saved checkpoints, recorded configuration, and CSV export are
-  used for reproducibility.
-- TCERS excludes prediction-changing transformations and reports valid counts.
-- Similarity metrics compare consistently normalized maps and reject mismatched
-  shapes.
-- Results must be reported with uncertainty and paired tests before claims of
-  statistical significance.
-
-## Literature foundation
-
-Selvaraju et al. (2017), *Grad-CAM*; Sundararajan et al. (2017),
-*Axiomatic Attribution for Deep Networks*; Petsiuk et al. (2018), *RISE*; and
-Adebayo et al. (2018), *Sanity Checks for Saliency Maps*. Verify DOI, venue,
-and year from the publisher before adding newer 2023--2026 references.
-
+Local VAE neighbours reflect the learned decoder and can lose texture or class information. Pixel RMSE controls average image change and leaves differences in spatial structure unaccounted for. Conditional matching can exclude some images and variants. Deletion and insertion depend on the replacement baseline, and a strong classifier may assign high confidence to heavily edited inputs. The sanity-check reproduction uses a different architecture, domain and output space from Adebayo et al. FID is outside the evaluation because the matched comparison concerns local changes and the additional feature-extractor pass would add compute.

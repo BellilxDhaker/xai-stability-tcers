@@ -95,9 +95,13 @@ def dataset_tables(config):
     train, validation = train_validation(config.data_root, config.image_size, config.validation_fraction, config.seed)
     training_labels = split_labels(config.data_root, "trainval")
     test_labels = split_labels(config.data_root, "test")
+    train_ids, validation_ids = train.indices, validation.indices
+    if config.quick:
+        train_ids = train_ids[:config.quick_train_samples]
+        validation_ids = validation_ids[:config.quick_validation_samples]
     selections = {
-        "train": training_labels[train.indices],
-        "validation": training_labels[validation.indices],
+        "train": training_labels[train_ids],
+        "validation": training_labels[validation_ids],
         "test": test_labels,
         "evaluation_cohort": test_labels[stratified_indices(test_labels, config.test_samples, config.seed)],
     }

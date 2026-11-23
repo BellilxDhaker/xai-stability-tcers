@@ -8,6 +8,7 @@ __pycache__/
 !/data/README.md
 /checkpoints/*
 !/checkpoints/.gitkeep
+/papers/downloads/
 /experiments/project4-quick/
 /experiments/project4/cache/
 /experiments/project4/**/*.npy

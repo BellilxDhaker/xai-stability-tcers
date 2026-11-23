@@ -14,3 +14,5 @@ Official species counts follow the breed counts in the paper. The training and v
 ## Download
 
 Running `python -m src.train` downloads and extracts the archives with Torchvision. For a manual install, get the images and annotations from Oxford. Unpack them so your configured data root contains `oxford-iiit-pet/images/` and `oxford-iiit-pet/annotations/`, including `trainval.txt` and `test.txt`. The dataset is roughly 800 MB before extraction. [Official archives and Academic Torrents mirror](https://www.robots.ox.ac.uk/~vgg/data/pets/#downloads)
+
+For local verification, the dataset was recovered from the fast.ai mirror. Both split files matched Oxford’s official annotations and every annotated image path was verified. Git excludes the dataset files. [fast.ai dataset archive](https://s3.amazonaws.com/fast-ai-imageclas/oxford-iiit-pet.tgz)

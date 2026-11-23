@@ -2,6 +2,8 @@
 
 Download the PDFs from these primary sources. The full citations and study context are in [References](../docs/references.md).
 
+The local verification checkout includes the reproduction paper and three recent papers in `papers/downloads/`. Git tracks this index and excludes the downloaded PDFs.
+
 | Role | Download |
 | --- | --- |
 | Reproduction | [Adebayo et al., Sanity Checks for Saliency Maps, NeurIPS 2018](https://proceedings.neurips.cc/paper_files/paper/2018/file/294a8ed24b1ad22ec2e7efea049b8737-Paper.pdf) and [revised version with appendices and erratum](https://arxiv.org/pdf/1810.03292) |

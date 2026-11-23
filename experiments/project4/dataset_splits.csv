@@ -1,0 +1,5 @@
+split,n,cat,dog
+train,3128,1016,2112
+validation,552,172,380
+test,3669,1183,2486
+evaluation_cohort,300,97,203
