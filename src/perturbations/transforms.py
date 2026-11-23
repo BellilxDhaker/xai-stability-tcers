@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Callable, List
 
 import torch
+from torchvision.transforms import InterpolationMode
 from torchvision.transforms import functional as TF
 
 
@@ -9,27 +9,35 @@ from torchvision.transforms import functional as TF
 class Perturbation:
     name: str
     parameter: float
-    apply: Callable[[torch.Tensor], torch.Tensor]
+
+    def _geometry(self, tensor: torch.Tensor) -> torch.Tensor:
+        if self.name == "rotation":
+            return TF.rotate(tensor, self.parameter, interpolation=InterpolationMode.BILINEAR, fill=None)
+        if self.name == "resize":
+            size = int(self.parameter)
+            resized = TF.resize(tensor, [size, size], antialias=True)
+            return TF.resize(resized, list(tensor.shape[-2:]), antialias=True)
+        return tensor
+
+    def apply(self, image: torch.Tensor, generator: torch.Generator | None = None) -> torch.Tensor:
+        if self.name == "brightness":
+            return (image * self.parameter).clamp(0, 1)
+        if self.name == "noise":
+            noise = torch.randn(image.shape, generator=generator, device=image.device, dtype=image.dtype)
+            return (image + noise * self.parameter).clamp(0, 1)
+        return self._geometry(image).clamp(0, 1)
+
+    def align(self, maps: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor | None]:
+        aligned = self._geometry(maps)
+        if self.name != "rotation" or self.parameter == 0:
+            return aligned, None
+        height, width = maps.shape[-2:]
+        support = self._geometry(maps.new_ones((1, 1, height, width)))[0, 0]
+        return aligned, support >= 1.0 - 1e-6
 
 
-def make_perturbations(noise_generator: torch.Generator | None = None) -> List[Perturbation]:
-    def rotation(angle: float):
-        return lambda image: TF.rotate(image, angle)
-
-    def brightness(factor: float):
-        return lambda image: TF.adjust_brightness(image, factor)
-
-    def noise(std: float):
-        def apply(image):
-            noise_tensor = torch.randn(image.shape, generator=noise_generator, device=image.device) * std
-            return image + noise_tensor
-        return apply
-
-    def resize(size: float):
-        return lambda image: TF.resize(image, [int(size), int(size)])
-
-    return ([Perturbation("rotation", x, rotation(x)) for x in (-15, -10, -5, 5, 10, 15)] +
-            [Perturbation("brightness", x, brightness(x)) for x in (0.8, 1.2)] +
-            [Perturbation("noise", x, noise(x)) for x in (0.01, 0.03, 0.05)] +
-            [Perturbation("resize", x, resize(x)) for x in (128, 180, 256)])
-
+def make_perturbations(parameters):
+    known = {"rotation", "brightness", "noise", "resize"}
+    if set(parameters) - known:
+        raise ValueError(f"Unknown perturbations: {set(parameters) - known}")
+    return [Perturbation(name, value) for name, values in parameters.items() for value in values]

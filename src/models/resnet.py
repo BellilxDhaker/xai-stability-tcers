@@ -10,6 +10,21 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision.models import ResNet18_Weights, resnet18
 
+from src.data.oxford_pets import IMAGENET_MEAN, IMAGENET_STD
+
+
+class PixelClassifier(nn.Module):
+    """Accept RGB pixels in [0, 1] and preserve the backbone checkpoint format."""
+
+    def __init__(self, backbone):
+        super().__init__()
+        self.backbone = backbone
+        self.register_buffer("mean", torch.tensor(IMAGENET_MEAN).view(1, 3, 1, 1))
+        self.register_buffer("std", torch.tensor(IMAGENET_STD).view(1, 3, 1, 1))
+
+    def forward(self, images):
+        return self.backbone((images - self.mean) / self.std)
+
 
 def build_resnet18(num_classes: int = 2, pretrained: bool = True) -> nn.Module:
     weights = ResNet18_Weights.DEFAULT if pretrained else None
@@ -63,7 +78,8 @@ def train_model(model: nn.Module, train_loader, validation_loader, device: torch
             best_loss, stale_epochs = validation_loss, 0
             if checkpoint is not None:
                 checkpoint.parent.mkdir(parents=True, exist_ok=True)
-                torch.save({"model_state_dict": model.state_dict(), "history": history}, checkpoint)
+                backbone = model.backbone if isinstance(model, PixelClassifier) else model
+                torch.save({"model_state_dict": backbone.state_dict(), "history": history}, checkpoint)
                 print(f"  saved checkpoint (best val_loss {best_loss:.4f})", flush=True)
         else:
             stale_epochs += 1
