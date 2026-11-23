@@ -3,6 +3,7 @@ import json
 from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 
+from src.perturbations.transforms import CLASSIC_PARAMETERS
 from src.utils import save_json
 
 
@@ -47,12 +48,7 @@ class ExperimentConfig:
     quick_train_samples: int = 128
     quick_validation_samples: int = 32
     quick_test_samples: int = 8
-    perturbations: dict[str, tuple[float, ...]] = field(default_factory=lambda: {
-        "rotation": (-15, -10, -5, -2, 2, 5, 10, 15),
-        "brightness": (0.8, 0.95, 0.99, 1.01, 1.05, 1.2),
-        "noise": (0.002, 0.005, 0.01, 0.03, 0.05),
-        "resize": (128, 180, 256),
-    })
+    perturbations: dict[str, tuple[float, ...]] = field(default_factory=CLASSIC_PARAMETERS.copy)
 
     def __post_init__(self):
         for name in ("data_root", "output_root", "checkpoint_root", "resnet_checkpoint"):

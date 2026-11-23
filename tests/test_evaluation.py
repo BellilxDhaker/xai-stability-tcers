@@ -5,9 +5,10 @@ from torch import nn
 from src.config import ExperimentConfig
 from src.evaluation.common import ExplanationMaps, METHODS
 from src.evaluation.faithfulness import deletion_insertion
-from src.evaluation.runner import Variant, match_variants
+from src.evaluation.runner import Variant, evaluate_transformations, match_variants
 from src.evaluation.sanity_checks import randomized_models
 from src.models.resnet import PixelClassifier, build_resnet18
+from src.perturbations.transforms import Perturbation, make_perturbations
 
 
 class ToyModel(nn.Module):
@@ -74,3 +75,13 @@ def test_batched_explainers_cache_signed_maps(tmp_path):
     for method in METHODS:
         assert before[method].shape == (2, 1, 32, 32)
         torch.testing.assert_close(before[method], after[method])
+
+
+def test_single_explainer_runner_applies_rotation_alignment():
+    images = torch.zeros(1, 3, 32, 32)
+    images[:, 0, 8:18, 12:20] = 1
+    results = evaluate_transformations(ToyModel(), images, lambda pixels: pixels[:, :1],
+                                       [Perturbation("rotation", 12)], torch.device("cpu"))
+    assert results.loc[0, "prediction_unchanged"]
+    assert np.isclose(results.loc[0, "ssim"], 1.0)
+    assert make_perturbations()

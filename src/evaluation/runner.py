@@ -6,7 +6,7 @@ import torch
 from scipy.optimize import linear_sum_assignment
 from torch.nn import functional as F
 
-from src.evaluation.common import METHODS, make_generator
+from src.evaluation.common import make_generator
 from src.metrics.stability import TCERS_METRICS, similarity_metrics, tcers
 from src.perturbations.transforms import make_perturbations
 from src.perturbations.vae_perturbations import latent_neighbourhood
@@ -111,7 +111,7 @@ def evaluate_arm(reference_maps, targets, confidence, variants, matches, ids, se
                             for method, values in reference_maps.items()}
         metric_positions = {position: offset for offset, position in enumerate(positions)}
         for position, sample in enumerate(ids):
-            for method in METHODS:
+            for method in reference_maps:
                 row = {
                     "sample": sample, "seed": seed, "arm": arm, "method": method,
                     "transformation": variant.name, "parameter": variant.parameter,
@@ -128,9 +128,34 @@ def evaluate_arm(reference_maps, targets, confidence, variants, matches, ids, se
                 yield row
 
 
+def evaluate_transformations(model, images, explain, perturbations, device, method="unknown", output_csv=None):
+    """Evaluate a single explainer on pixel-space images using the common alignment path."""
+    model.eval()
+    images = images.to(device)
+    labels, confidence = predict(model, images)
+    targets = torch.as_tensor(labels, device=device)
+
+    def maps(pixels, targets, *, random_seed):
+        return {method: explain(pixels).detach().cpu()}
+
+    ids = tuple(range(len(images)))
+    candidates = [(item.name, item.parameter, item.apply(images), item) for item in perturbations]
+    variants = classify_variants(model, images, candidates, forward_batch_size=max(1, len(images)))
+    matches = np.full((len(variants), len(images)), -1)
+    rows = evaluate_arm(maps(images, targets, random_seed=0), targets, confidence, variants, matches,
+                        ids, 0, "classic", maps, metric_size=None)
+    fields = ["sample", "transformation", "parameter", "method", "prediction_unchanged",
+              "original_confidence", "transformed_confidence", *SIMILARITY_METRICS]
+    result = pd.DataFrame(rows, columns=fields)
+    if output_csv is not None:
+        output_csv.parent.mkdir(parents=True, exist_ok=True)
+        result.to_csv(output_csv, index=False)
+    return result
+
+
 def run_stability(config, model, vaes, loader, map_provider, target_device):
     rows, reconstructions = [], []
-    perturbations = make_perturbations(config.perturbations)
+    perturbations = make_perturbations(parameters=config.perturbations)
     for batch, (images, labels, indices) in enumerate(loader, start=1):
         ids = tuple(indices.tolist())
         images = images.to(target_device)

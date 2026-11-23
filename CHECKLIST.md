@@ -15,7 +15,7 @@
 
 ## Verification status
 
-- `pytest -q` passed 12 tests. All six CLI stages completed in CPU smoke mode with Oxford-IIIT Pet images, including a separate three-seed smoke run with multiple batches. Local smoke artifacts are under `experiments/project4-quick/`.
+- `pytest -q` passed 13 tests. All six CLI stages completed in CPU smoke mode with Oxford-IIIT Pet images, including a separate three-seed smoke run with multiple batches. Local smoke artifacts are under `experiments/project4-quick/`.
 - The five-slide draft and the populated smoke deck were rendered as Marp slides. The full report and deck mark research results as pending.
 - The four selected PDFs are available locally. The dataset includes every official annotated trainval and test image. Both downloads are excluded from Git. The [generated split table](experiments/project4/dataset_splits.csv) verifies the 300-image stratified cohort.
 - TODO Run the full cohort and three seeds, then generate the research report and deck from those CSVs. The CPU smoke runs verify the workflow at reduced settings. The full faithfulness stage alone would take hours at the measured CPU throughput.
