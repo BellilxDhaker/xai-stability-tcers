@@ -11,6 +11,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision.models import ResNet18_Weights, resnet18
 
 from src.data.oxford_pets import IMAGENET_MEAN, IMAGENET_STD
+from src.utils import save_checkpoint
 
 
 class PixelClassifier(nn.Module):
@@ -77,9 +78,8 @@ def train_model(model: nn.Module, train_loader, validation_loader, device: torch
         if validation_loss < best_loss:
             best_loss, stale_epochs = validation_loss, 0
             if checkpoint is not None:
-                checkpoint.parent.mkdir(parents=True, exist_ok=True)
                 backbone = model.backbone if isinstance(model, PixelClassifier) else model
-                torch.save({"model_state_dict": backbone.state_dict(), "history": history}, checkpoint)
+                save_checkpoint({"model_state_dict": backbone.state_dict(), "history": history}, checkpoint)
                 print(f"  saved checkpoint (best val_loss {best_loss:.4f})", flush=True)
         else:
             stale_epochs += 1

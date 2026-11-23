@@ -17,6 +17,7 @@ LEARNED_METHODS = METHODS[:3]
 
 def setup(config, stage):
     config.create_directories()
+    (config.output_root / f"signature_{stage}.json").unlink(missing_ok=True)
     seed_everything(config.seed)
     torch.set_num_threads(config.cpu_threads)
     config.save(stage, device=str(device()), torch_version=str(torch.__version__))
@@ -86,8 +87,8 @@ class ExplanationMaps:
         except (FileNotFoundError, OSError, ValueError):
             values = None
         if values is None:
-            values = np.stack([method(images, targets, signed=signed).cpu().numpy()
-                               for method in self.explainers])
+            values = np.stack([method(images, target=targets, signed=signed).cpu().numpy()
+                               for method in self.explainers.values()])
             if cache_path is not None:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 with NamedTemporaryFile(dir=cache_path.parent, suffix=".tmp", delete=False) as handle:
