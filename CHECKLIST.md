@@ -16,8 +16,8 @@
 ## Verification status
 
 - `pytest -q` passed 13 tests. All six CLI stages completed in CPU smoke mode with Oxford-IIIT Pet images, including a separate three-seed smoke run with multiple batches. Local smoke artifacts are under `experiments/project4-quick/`.
-- The five-slide draft and the populated smoke deck were rendered as Marp slides. The full report and deck mark research results as pending.
+- The [full report](experiments/project4/results.md) and [five-slide deck](slides/project4.md) contain the measured results. The experiment produced 31 CSVs and eight figures.
 - The four selected PDFs are available locally. The dataset includes every official annotated trainval and test image. Both downloads are excluded from Git. The [generated split table](experiments/project4/dataset_splits.csv) verifies the 300-image stratified cohort.
-- TODO Run the full cohort and three seeds, then generate the research report and deck from those CSVs. The CPU smoke runs verify the workflow at reduced settings. The full faithfulness stage alone would take hours at the measured CPU throughput.
-- TODO Time the full pipeline on a Colab T4.
+- On November 23, 2026, all 13 tests passed on a Colab Tesla T4 with PyTorch 2.8.0+cu126. The successful notebook cell took 1 h 32 min 58 s including dependency setup, tests, all six full stages, and archiving.
+- The classifier reached 97.71% accuracy on the 3,669 official test images. All three evaluation seeds (42, 43, 44) covered the same 300 images. The matcher retained 809 perturbation pairs across 287 images. Original and decoded predictions agreed in 30.0% of cases, which limits how far the decoded-image findings transfer to the original images.
 - FID and latent counterfactual optimization are optional and outside the implemented scope.

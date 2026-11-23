@@ -27,7 +27,7 @@ Grad-CAM, Integrated Gradients and Occlusion explain the predicted class of a Re
 2. Does an image's stability correlate with deletion and insertion AUC?
 3. Does the layer-randomization sensitivity ranking agree with the stability ranking?
 
-> Full experiment pending · Classifier test metrics pending.
+> Full protocol · Classifier test accuracy 97.7% on 3669 images.
 
 ---
 
@@ -47,7 +47,7 @@ The experiment compares classic and VAE edits around a common decoded image, at 
 
 Reset ResNet18 from logits to stem, both cumulatively and one block at a time. Hold the original target class fixed. Compare signed and magnitude rank, SSIM, and HOG.
 
-> Layerwise similarity curves and intervals are pending the full experiment.
+![width:1000px](../experiments/project4/figures/sanity_signed.png)
 
 > In the paper, plain Grad-CAM changed and signed IG lost agreement sooner than IG magnitude. Sliding-window Occlusion extends the comparison.
 
@@ -59,20 +59,28 @@ Reset ResNet18 from logits to stem, both cumulatively and one block at a time. H
 
 **Encode → decode → perturb latent mean → decode.** Match classic and VAE edits by pixel RMSE when predictions agree. TCERS averages SSIM, Spearman and cosine scaled to [0, 1].
 
-Matched-pair coverage and pixel RMSE are pending.
+The matcher retained 809 pairs across 287 of 300 images.
 
-> Matched TCERS, confidence intervals and method rankings are pending.
+| Method | Classic TCERS | VAE TCERS | Deletion AUC ↓ | Insertion AUC ↑ |
+| --- | --- | --- | --- | --- |
+| Grad-CAM | 0.951 | 0.988 | 0.905 | 0.913 |
+| IG | 0.836 | 0.872 | 0.913 | 0.916 |
+| Occlusion | 0.787 | 0.869 | 0.909 | 0.910 |
+| Random | 0.645 | 0.645 | 0.916 | 0.916 |
+| Constant | 1.000 | 1.000 | 0.916 | 0.916 |
 
-> Deletion and insertion AUC and the reconstruction grid are pending.
+![width:380px](../experiments/project4/figures/vae_grid_42.png)
+
+> Validation images, reconstructions and prior samples appear from top to bottom.
 
 ---
 
 ## What the comparisons can establish
 
-- **RQ1** · Matched stability ranking pending.
-- **RQ2** · Constant and random controls reveal why stability needs a separate faithfulness check. Correlations are estimated per image and method.
-- **RQ3** · Cascading parameter sensitivity order · pending.
+- **RQ1** · The point-estimate ranking is the same in both matched arms.
+- **RQ2** · Across the three methods, Spearman ρ ranged from 0.27 to 0.49 for deletion and from 0.26 to 0.50 for insertion. Lower deletion AUC and higher insertion AUC indicate better faithfulness.
+- **RQ3** · Cascading parameter sensitivity order · Occlusion → Grad-CAM → IG.
 
-A VAE can smooth fine details, and pixel RMSE only controls average change. Prediction-preserving and match filters restrict the comparison to eligible inputs. Bootstrap intervals resample images and paired tests use Holm correction.
+Original and reconstructed predictions agreed at a rate of 0.300 [0.250, 0.350] (n=300). Matched edits preserve the decoded image's prediction. Pixel RMSE controls average change.
 
 > Next experiments · vary the VAE capacity and test whether the ordering transfers to another classifier or dataset.

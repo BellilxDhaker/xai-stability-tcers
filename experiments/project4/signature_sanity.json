@@ -1,0 +1,19 @@
+{
+  "classifier_sha256": "d5b062a4c6c42c8de0f875e464f95c5ee3868f7f3c648497e5e00731886d77b9",
+  "cohort_seed": 42,
+  "cohort_size": 300,
+  "evaluation_seeds": [
+    42,
+    43,
+    44
+  ],
+  "image_size": 224,
+  "evaluation_batch_size": 8,
+  "num_classes": 2,
+  "ig_steps": 16,
+  "occlusion_patch": 56,
+  "occlusion_stride": 56,
+  "metric_size": 64,
+  "vae_size": 128,
+  "latent_dim": 64
+}

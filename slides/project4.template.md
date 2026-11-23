@@ -70,9 +70,9 @@ Reset ResNet18 from logits to stem, both cumulatively and one block at a time. H
 ## What the comparisons can establish
 
 - **RQ1** · @@RANK@@
-- **RQ2** · Constant and random controls reveal why stability needs a separate faithfulness check. Correlations are estimated per image and method.
+- **RQ2** · @@RQ2@@ Lower deletion AUC and higher insertion AUC indicate better faithfulness.
 - **RQ3** · Cascading parameter sensitivity order · @@SENSITIVITY@@.
 
-A VAE can smooth fine details, and pixel RMSE only controls average change. Prediction-preserving and match filters restrict the comparison to eligible inputs. Bootstrap intervals resample images and paired tests use Holm correction.
+Original and reconstructed predictions agreed at a rate of @@AGREEMENT@@. Matched edits preserve the decoded image's prediction. Pixel RMSE controls average change.
 
 > Next experiments · vary the VAE capacity and test whether the ordering transfers to another classifier or dataset.

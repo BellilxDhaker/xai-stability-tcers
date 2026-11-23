@@ -15,6 +15,10 @@ def number(value):
     return f"{value:.3f}" if pd.notna(value) else "—"
 
 
+def p_value(value):
+    return "<0.001" if pd.notna(value) and value < 0.001 else number(value)
+
+
 def estimate(row):
     if pd.isna(row["mean"]):
         return f"— (n={row['n']})"
@@ -94,15 +98,23 @@ def render_reports(config, tables):
     tests = tables["matched_arm_tests"]
     match_tests = table(("Method", "n", "Mean Δ TCERS", "95% CI", "Rank-biserial", "Holm p"), [
         (LABELS[row.method], row.n, number(row.mean_difference), f"[{number(row.ci_low)}, {number(row.ci_high)}]",
-         number(row.rank_biserial), number(row.p_holm)) for row in tests.itertuples()
+         number(row.rank_biserial), p_value(row.p_holm)) for row in tests.itertuples()
     ])
     corr_table = tables["stability_faithfulness_correlations"]
     corr_table = corr_table[(corr_table.arm == "vae_matched") &
                             (corr_table.baseline == config.faithfulness_baselines[0])]
     correlations = table(("Method", "Outcome", "n", "ρ [95% CI]", "Holm p"), [
         (LABELS[row.method], row.metric, row.n, f"{number(row.rho)} [{number(row.ci_low)}, {number(row.ci_high)}]",
-         number(row.p_holm)) for row in corr_table.itertuples()
+         p_value(row.p_holm)) for row in corr_table.itertuples()
     ])
+    rho_ranges = corr_table[corr_table.method.isin(LEARNED_METHODS)].groupby("metric").rho.agg(["min", "max"])
+    rho_text = []
+    for metric, label in (("deletion_auc", "deletion"), ("insertion_auc", "insertion")):
+        if metric in rho_ranges.index and rho_ranges.loc[metric].notna().all():
+            low, high = rho_ranges.loc[metric, ["min", "max"]]
+            rho_text.append(f"{low:.2f} to {high:.2f} for {label}")
+    rq2 = ("Across the three methods, Spearman ρ ranged from " + " and from ".join(rho_text) + "."
+           if rho_text else "The available images give no defined correlation.")
     if config.quick:
         statement = "The reduced training and evaluation settings make these outputs suitable for workflow checks."
     else:
@@ -176,7 +188,8 @@ Matched VAE stability · {ranking(vae_order)}.
         "@@MODE@@": fit_mode, "@@CLASSIFIER@@": class_sentence,
         "@@SANITY_VISUAL@@": "![width:1000px](@@FIGURES@@/sanity_signed.png)",
         "@@CONTRIBUTION@@": contribution, "@@MATCH@@": coverage,
-        "@@RANK@@": statement, "@@SENSITIVITY@@": ranking(sanity_order),
+        "@@RANK@@": statement, "@@SENSITIVITY@@": ranking(sanity_order), "@@RQ2@@": rq2,
+        "@@AGREEMENT@@": agreement,
         "@@VAE_VISUAL@@": (f"![width:380px](@@FIGURES@@/vae_grid_{config.evaluation_seeds[0]}.png)\n\n"
                             "> Validation images, reconstructions and prior samples appear from top to bottom."
                             if fit_runs.exists() else "> The VAE reconstruction grid is pending."),
@@ -200,4 +213,8 @@ def write_reports(config, tables):
         _, matched_end, suffix = tail.partition(end)
         if found and matched_end:
             summary = f"{values['@@CLASSIFIER@@']} {values['@@MATCH@@']} {values['@@RANK@@']}"
+            summary += (f" We compared matched VAE stability with decoded-image faithfulness using the "
+                        f"{config.faithfulness_baselines[0]} baseline. {values['@@RQ2@@']} "
+                        f"The cascading parameter sensitivity ranking was {values['@@SENSITIVITY@@']}. "
+                        f"Original and decoded predictions agreed at a rate of {values['@@AGREEMENT@@']}.")
             readme.write_text(f"{prefix}{start}\n{summary}\n{end}{suffix}", encoding="utf-8")

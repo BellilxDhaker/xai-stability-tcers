@@ -41,7 +41,7 @@ Use the same `--config overrides.json` with each stage to override any field in 
 ## Results
 
 <!-- project4-results:start -->
-Full experiment results are pending.
+Classifier test accuracy 97.7% on 3669 images. The matcher retained 809 pairs across 287 of 300 images. The point-estimate ranking is the same in both matched arms. We compared matched VAE stability with decoded-image faithfulness using the blur baseline. Across the three methods, Spearman ρ ranged from 0.27 to 0.49 for deletion and from 0.26 to 0.50 for insertion. The cascading parameter sensitivity ranking was Occlusion → Grad-CAM → IG. Original and decoded predictions agreed at a rate of 0.300 [0.250, 0.350] (n=300).
 <!-- project4-results:end -->
 
 The current-protocol figures and [generated summary](experiments/project4/results.md) are produced from the new CSVs by `python -m src.run_stats`. The five-slide [Marp deck](slides/project4.md) is refreshed by the same command. The project’s [checklist](CHECKLIST.md) records which experiments have actually run. The tracked tables in `experiments/results/` and images in `figures/` preserve the original exploratory results from before the protocol correction.

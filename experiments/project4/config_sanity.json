@@ -1,0 +1,86 @@
+{
+  "data_root": "data",
+  "output_root": "experiments/project4",
+  "checkpoint_root": "checkpoints",
+  "resnet_checkpoint": null,
+  "image_size": 224,
+  "batch_size": 32,
+  "evaluation_batch_size": 8,
+  "forward_batch_size": 64,
+  "num_workers": 0,
+  "cpu_threads": 4,
+  "epochs": 10,
+  "patience": 3,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.0001,
+  "seed": 42,
+  "evaluation_seeds": [
+    42,
+    43,
+    44
+  ],
+  "test_samples": 300,
+  "num_classes": 2,
+  "validation_fraction": 0.15,
+  "pretrained": true,
+  "ig_steps": 16,
+  "occlusion_patch": 56,
+  "occlusion_stride": 56,
+  "metric_size": 64,
+  "faithfulness_steps": 20,
+  "faithfulness_baselines": [
+    "blur",
+    "mean"
+  ],
+  "bootstrap_repeats": 2000,
+  "vae_size": 128,
+  "latent_dim": 64,
+  "vae_epochs": 20,
+  "vae_learning_rate": 0.001,
+  "vae_beta": 0.001,
+  "latent_sigmas": [
+    0.25,
+    0.5,
+    1.0
+  ],
+  "match_caliper": 0.003,
+  "cache_maps": true,
+  "quick": false,
+  "quick_train_samples": 128,
+  "quick_validation_samples": 32,
+  "quick_test_samples": 8,
+  "perturbations": {
+    "rotation": [
+      -15,
+      -10,
+      -5,
+      -2,
+      2,
+      5,
+      10,
+      15
+    ],
+    "brightness": [
+      0.8,
+      0.95,
+      0.99,
+      1.01,
+      1.05,
+      1.2
+    ],
+    "noise": [
+      0.002,
+      0.005,
+      0.01,
+      0.03,
+      0.05
+    ],
+    "resize": [
+      128,
+      180,
+      256
+    ]
+  },
+  "device": "cuda",
+  "torch_version": "2.8.0+cu126"
+}

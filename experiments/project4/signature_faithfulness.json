@@ -1,0 +1,24 @@
+{
+  "classifier_sha256": "d5b062a4c6c42c8de0f875e464f95c5ee3868f7f3c648497e5e00731886d77b9",
+  "cohort_seed": 42,
+  "cohort_size": 300,
+  "evaluation_seeds": [
+    42,
+    43,
+    44
+  ],
+  "image_size": 224,
+  "evaluation_batch_size": 8,
+  "num_classes": 2,
+  "ig_steps": 16,
+  "occlusion_patch": 56,
+  "occlusion_stride": 56,
+  "metric_size": 64,
+  "vae_size": 128,
+  "latent_dim": 64,
+  "vae_sha256": {
+    "42": "d4cd5f35f958ee65b0ee3143750972b9f16a62e410d67ebd502d391fa1886ffe",
+    "43": "3ff604b0c6cd1786ea7362714a66a9eed8096650d3c1c50505af091ccb5a4836",
+    "44": "b96d5afe42d482c0beaefc130eef1ebdc3cd0eb32b89e618e6403ca4dd0a05b8"
+  }
+}
